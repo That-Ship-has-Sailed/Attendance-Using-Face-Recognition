@@ -16,7 +16,11 @@ def mark_attendance(matched_ids, division='SE CMPN A', subject='OST', lecture_ty
     date = datetime.datetime.now().strftime("%d-%m-%y")
     # Sets the date to current date
 
-    total_present = 0  # To add the number of people who were marked present
+    # Total Present can be calculated by getting a count of unique ids
+    # total_present = 0  # To add the number of people who were marked present
+    total_present = len(set(matched_ids))
+    print("Number of Total Present: ", total_present)
+
     book = load_workbook(path)  # Loads the excel sheet to the book variable
     writer = pd.ExcelWriter(path)  # Creates a writer object
     writer.book = book
@@ -30,10 +34,15 @@ def mark_attendance(matched_ids, division='SE CMPN A', subject='OST', lecture_ty
     if date not in attendance.columns:  # Lets us upload 2 or more images for the same date, same lecture
         attendance[date] = 'A'  # Makes a new column with current date initialised a 'A'
 
+    # Need to optimize this for loop, by multiple assigning the Roll Numbers to Present
+    '''
     for roll_number in matched_ids:
         if roll_number in attendance.index:
             attendance.loc[roll_number, date] = 'P'  # Marks P for people present and scanned in the pic
             total_present += 1  # Keeps a track of how many students are present
+    '''
+
+    attendance.loc[matched_ids, date] = 'P' # Marks present for all the Roll Numbers in matched ids
 
     attendance.loc['Total Present', date] = total_present
     attendance.loc['Hours', date] = hour
@@ -41,42 +50,6 @@ def mark_attendance(matched_ids, division='SE CMPN A', subject='OST', lecture_ty
     writer.save()
     writer.close()
     # Saves and closes the writer object
-
-'''
-def get_lecture_details(faculty_name='Prakash Parmar'):
-    current_time = datetime.datetime.now().time()  # Makes a time object of current
-    current_day = datetime.datetime.now().strftime("%A")
-    # Currentday stores the name of current day. %A is the parameter to pass to strftime to get the day in string format
-
-    Copy Paste the next line into the parameters list to pass time instead of taking the system time
-    , hour=14, minute=44, day='Wednesday'
-    current_time = datetime.time(hour, minute)
-    current_day = day
-
-    path = "Timetables/" + faculty_name + " Timetable.xlsx"  # Sets the path of the excel sheet timetable
-    time_table = pd.read_excel(path, index_col=0)   # Reads the timetable
-
-    for bound in time_table.index:  # Iterates over the bounds/lecture times stored in excel sheet as indices
-        start = bound.split("-")[0]  # Takes the first half of the bound as start time
-        start_time = datetime.time(hour=int(start.split(":")[0]), minute=int(start.split(":")[1]))
-        #  Makes a start_time time object of the start time
-
-        end = bound.split("-")[1]
-        end_time = datetime.time(hour=int(end.split(":")[0]), minute=int(end.split(":")[1]))
-        # Similarly makes an end_time time object of the end time
-
-        if start_time < current_time < end_time:  # Checks if current system time is between the start and end time
-            lecture = time_table.loc[bound, current_day]
-            if lecture == "No Lecture":
-                return lecture, False
-            else:
-                lecture = lecture.split("/")
-                lecture_details = {'subject': lecture[0], 'type': lecture[1], 'division': lecture[2],
-                                   'duration': lecture[3], 'time': lecture[4]}
-                return lecture_details, True
-    return "No Lecture", False
-'''
-
 
 def get_lecture_details(faculty_name='Prakash Parmar'):
     current_time = datetime.datetime.now().time()  # Makes a time object of current
