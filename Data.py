@@ -17,14 +17,11 @@ def mark_attendance(matched_ids, division='SE CMPN A', subject='OST', lecture_ty
     # Sets the date to current date
 
     # Total Present can be calculated by getting a count of unique ids
-    # total_present = 0  # To add the number of people who were marked present
-    total_present = len(set(matched_ids))
-    print("Number of Total Present: ", total_present)
+    total_present = len(set(matched_ids)) # To add the number of people who were marked present
 
     book = load_workbook(path)  # Loads the excel sheet to the book variable
     writer = pd.ExcelWriter(path)  # Creates a writer object
     writer.book = book
-
     attendance = pd.read_excel(path, index_col=0, sheet_name=lecture_type)
     # Reads the excel file to memory
 
@@ -33,14 +30,6 @@ def mark_attendance(matched_ids, division='SE CMPN A', subject='OST', lecture_ty
 
     if date not in attendance.columns:  # Lets us upload 2 or more images for the same date, same lecture
         attendance[date] = 'A'  # Makes a new column with current date initialised a 'A'
-
-    # Need to optimize this for loop, by multiple assigning the Roll Numbers to Present
-    '''
-    for roll_number in matched_ids:
-        if roll_number in attendance.index:
-            attendance.loc[roll_number, date] = 'P'  # Marks P for people present and scanned in the pic
-            total_present += 1  # Keeps a track of how many students are present
-    '''
 
     attendance.loc[matched_ids, date] = 'P' # Marks present for all the Roll Numbers in matched ids
 
@@ -118,10 +107,9 @@ def plot_bargraph(division='SE CMPN A', subject='OST', lecture_type='Theory'):
 def compute_percentages(division='SE CMPN A', subject='OST', lecture_type='Theory'):
     path = "Attendance Sheets/" + division + "/" + subject + "/" + subject + " Attendance.xlsx"
     # path = r'''Attendance Sheets\SE CMPN A\CG\CG Attendance.xlsx'''
-    attendance = pd.read_excel(path, index_col=0,  sheet_name=lecture_type)
-
+    attendance = pd.read_excel(path, index_col=0,  sheet_name=lecture_type) 
     # Reading the required excel sheet to memory
-    print("yolo", path)
+
     roll_numbers = list(attendance.index)
     roll_numbers.remove("Hours")
     roll_numbers.remove("Total Present")
@@ -131,20 +119,18 @@ def compute_percentages(division='SE CMPN A', subject='OST', lecture_type='Theor
     dates.remove("Name")
     # Makes a list of all dates present in the excel file
 
-    attendance['Total Hours Present'] = 0
     attendance['Percentage'] = 0
+    attendance['Total Hours Present'] = 0
     # Makes 2 new columns in the data frame to store Total Hours and percentage present of every student
 
-    total_hours = 0  # Initialising total hours of lectures completed
 
     # To calculate total number of hours of lecture that have been conducted
-    for date in dates:
-        total_hours += int(attendance.loc['Hours', date])
+    # attendance.drop('Name', axis=1, inplace=True)
+    attendance.fillna(0, inplace=True) # To fill the empty values in hour series (Name)
+    total_hours = attendance.loc['Hours'].apply(float).sum() # To find the sum of the hour series
+    # attendance['Name'] = names
 
-    # print(total_hours)
-    # print(dates)
-    # print(roll_numbers)
-
+    # To calculate the percentage 
     for roll_number in roll_numbers:
         total_hours_present = 0  # To store number of hours the student was present for
         for date in dates:
@@ -159,8 +145,6 @@ def compute_percentages(division='SE CMPN A', subject='OST', lecture_type='Theor
     attendance.loc['Total Present', 'Percentage'] = ' '
 
     attendance.to_excel("Attendance.xlsx")
-    # print(attendance)
-    # attendance = attendance.reset_index()
     return "Attendance.xlsx"
 
 
@@ -173,14 +157,3 @@ def faculty_login(username, password):
     else:
         print("Username and Password match", username, faculty_details.loc[username, 'Password'])
         return True, faculty_details.loc[username, 'Name']
-
-# compute_percentages()
-'''
-mark_attendance(['17102A0056', '17102A0057', '17102A0058', '17102A0052', '17102A0048', '17102A0004'], '2019-03-23', lecture_type='LabB2')
-print("Attendance Marked")
-dic, islec = get_lecture_details()
-print(islec)
-print(dic)
-
-plot_bargraph(lecture_type='Theory')
-'''
