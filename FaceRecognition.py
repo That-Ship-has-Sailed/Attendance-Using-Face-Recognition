@@ -7,6 +7,7 @@ import numpy as np
 
 
 def encode_and_store_values(division='SE CMPN A'):
+    print("Recompiling Database")
     images = os.listdir('Student Images/' + division + "/")
 
     # Opening the text files in w+ mode, so entire text file will be rewritten and if it doesnt exist
@@ -16,8 +17,7 @@ def encode_and_store_values(division='SE CMPN A'):
 
     # Iterating through the database and writing encoding and id to text files
     # images[2:] because the first two files in each folder are the #Encodings.txt & #Encoding Id.txt which we skip
-    for image in images[2:]:
-
+    for image in images:
         ''' 
         # This block is if we want to store encoding of grayscale images
         img_gray = img_new.convert('L')
@@ -26,8 +26,11 @@ def encode_and_store_values(division='SE CMPN A'):
         current_image = face_recognition.load_image_file('Gray_Temp.jpg')
         print(img_gray.mode)
         '''
+        if image.split('.')[1] == 'txt':
+            continue
 
         current_image = face_recognition.load_image_file("Student Images/" + division + "/" + image)
+
         current_image_encoded = face_recognition.face_encodings(current_image, None, 15)[0]
         # known_face_encodings.append(current_image_encoded)
         # known_face_ids.append(image.split('.')[0])  # Adding Roll Numbers to the list
@@ -41,6 +44,7 @@ def encode_and_store_values(division='SE CMPN A'):
         input_encoding_file.write(',')
         # add the roll number to the input_ids text file and add \n, for splitlines() later
         input_ids.write(image.split('.')[0]+'\n')
+
     input_encoding_file.close()
     input_ids.close()
 
@@ -82,8 +86,22 @@ def face_detect_and_recognize(image_paths, lecture_details):
     matched_ids = []
     image_counter = 1
 
+    # If required encoding txt files do not exist, then call the encode_and_store_values function
+    class_image_list = os.listdir('Student Images/' + lecture_details['year_branch_div'] + '/')
+    if "#Encodings.txt" not in class_image_list:
+        encode_and_store_values(lecture_details['year_branch_div'])
+
     input_encoding_file = open('Student Images/' + lecture_details['year_branch_div'] + '/' + '#Encodings.txt', 'r')
     input_ids = open('Student Images/' + lecture_details['year_branch_div'] + '/' + '#Encoding Id.txt', 'r')
+
+    # If any image was deleted or a new image was added then recompile the database
+    if len(input_ids.read().splitlines()) != len(class_image_list) - 2:
+        print("Image Modifications Found")
+        encode_and_store_values(lecture_details['year_branch_div'])
+        input_encoding_file = open('Student Images/' + lecture_details['year_branch_div'] + '/' + '#Encodings.txt', 'r')
+        input_ids = open('Student Images/' + lecture_details['year_branch_div'] + '/' + '#Encoding Id.txt', 'r')
+    else:
+        input_ids.seek(0) # Reset file pointer to start of id file
 
     # Encodings.txt contains the encoding vectors for each image in the database
     # Each vector is ended by a ',' which is why we used that split

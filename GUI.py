@@ -184,6 +184,7 @@ class UIWindow(QWidget):
             lect_details['year_branch_div'] = self.string_path
 
             print("Lect details done")
+
             image_paths = QFileDialog.getOpenFileNames(self, 'Open file', 'Image files', ".png *.jpg")
             if len(image_paths[0]) > 0:
                 matched_roll_numbers = face_detect_and_recognize(image_paths[0], lect_details)
@@ -481,9 +482,6 @@ class UIToolTab(QWidget):
 
         lect_details, valid = get_lecture_details(faculty_name)
         print(valid)
-        # SEE TO THIS.
-        # VALID ALWAYS RETURNS TRUE.
-        # TRY SOLVING THIS
 
         if valid is True:
             self.btn.clicked.connect(self.load_image_and_mark_attendance)
@@ -515,6 +513,7 @@ class UIToolTab(QWidget):
         '''
 
         # noinspection PyArgumentList
+
         lect_details, valid = get_lecture_details(faculty_name)
         print(lect_details)
 
@@ -522,6 +521,7 @@ class UIToolTab(QWidget):
         # image_paths[0] contains image paths, image_paths[1] contains extensions
         # If user opens browse but doesnt select file, then we are checking for that here using len
         if len(image_paths[0]) > 0:
+
             matched_roll_numbers = face_detect_and_recognize(image_paths[0], lect_details)
             print(matched_roll_numbers)
             # If no face was detected then to prevent crash use this if
@@ -698,7 +698,7 @@ class Login(QDialog):
             # noinspection PyArgumentList,PyArgumentList
             QMessageBox.warning(self, 'Error', 'Incorrect username or password')
         '''
-        valid, name_or_error = faculty_login(self.username.text(), self.password.text())
+        valid, name_or_error = faculty_login(self.username.text().strip().lower(), self.password.text())
         print(valid, name_or_error)
         # if (self.username.text() == 'admin' and self.password.text() == 'admin'):
         if valid is True:
@@ -709,7 +709,7 @@ class Login(QDialog):
                                           QMessageBox.Ok)
             if choice == QMessageBox.Ok:
                 self.accept()
-        elif name_or_error is "Username not found":
+        elif name_or_error == "Username not found":
             QMessageBox.warning(self, 'Error', name_or_error)
         else:
             QMessageBox.warning(self, 'Error', name_or_error)
